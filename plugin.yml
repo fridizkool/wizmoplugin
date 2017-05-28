@@ -1,0 +1,41 @@
+name: WizmoPlugin
+main: org.wizmogaming.nerdcrusher.main.WizmoPlugin
+version: 1.0
+depend: [WorldEdit, WorldGuard, UAStaffChat]
+commands:
+    protect:
+        description: Set a protection so an Admin can inspect it and protect it
+        usage: /protect [help]
+        permission: wizmogaming.protect
+    IsAdmin:
+        description: IsAdmin
+        usage: /isadmin
+        permission: wizmogaming.isadmin
+    trusted:
+        description: Remind player how to get trusted
+        usage: /trusted <player>
+        permission: wizmogaming.trusted
+    removeask:
+        description: When an admin finishes with a protection ask
+        usage: /removeask <accept/deny> <player>
+        permission: wizmogaming.removeask
+    protectlist:
+        description: Admins Protection to-do list
+        usage: /protectlist [player]
+        permission: wizmogaming.protectlist
+    wizmodeletefile:
+        description: In case of emergency
+        usage: /wizmodeletefile <protectionask/protectionamount/protectionplayers>
+        permission: wizmogaming.wizmodeletefile
+    protectedamount:
+        description: Fixer for selection amounts
+        usage: /protectedamount <set/get> <player> <(if using set)integer>
+        permission: wizmogaming.protectedamount
+        
+permisions:
+    wizmogaming.protect:
+        default: true
+    wizmogaming.wizmodeletefile:
+        default: op
+    wizmogaming.protectedamount:
+        default: op
