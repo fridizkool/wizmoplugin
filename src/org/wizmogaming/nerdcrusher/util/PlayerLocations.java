@@ -8,38 +8,33 @@ public class PlayerLocations
 {
 	private OfflinePlayer ThisPlayer;
 	private UUID PlayerUUID;
-	public LocationArea[] Locations;
-	private int Current;
+	public LocationArea Locations;
+//	private int Current;
 	private boolean New;
 	public int Protections;
 	
-	private static int MaxLocations = 1;
+//	private static int MaxLocations = 1;
 	
 	public PlayerLocations(OfflinePlayer p)
 	{
 		ThisPlayer = p.getPlayer();
 		PlayerUUID = ThisPlayer.getUniqueId();
-		Current = 0;
+//		Current = -1;
 		New = true;
 		Protections = 0;
 		
-		Locations = new LocationArea[MaxLocations];
-		for(int x = 0; x < Locations.length; x++)
-			Locations[x] = null;
+		Locations = new LocationArea(null, null);
 	}
 	
 	public void add(LocationArea a)
 	{
 		New = false;
-		if(Current >= MaxLocations)
-			Current = 0;
-		Locations[Current] = new LocationArea(a.get1(), a.get2());
-		Current++;
+		Locations = new LocationArea(a.get1(), a.get2());
 	}
 	
 	public LocationArea get()
 	{
-		return Locations[Current];
+		return Locations;
 	}
 	
 	public OfflinePlayer getPlayer()
@@ -54,7 +49,10 @@ public class PlayerLocations
 	
 	public void set(LocationArea x)
 	{
-		Locations[Current] = new LocationArea(x.get1(), x.get2());
+		if(x.get1() != null)
+			Locations.set1(x.get1());
+		if(x.get2() != null)
+			Locations.set2(x.get2());
 	}
 	
 	public boolean getNew()

@@ -1,15 +1,16 @@
 package org.wizmogaming.nerdcrusher.util;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 public class LocationArea
 {
-	private Location Loc1;
+	private String Loc1;
 	private double X1;
 	private double Y1;
 	private double Z1;
 	
-	private Location Loc2;
+	private String Loc2;
 	private double X2;
 	private double Y2;
 	private double Z2;
@@ -32,12 +33,7 @@ public class LocationArea
 			return;
 		}
 		
-		//Check if worlds are neither 0000, null, or if they aren't the same
-		if(!s[3].equals(s[7]) || s[3].equals("0000") || s[7].equals("0000") || s[3] == null || s[7] == null)
-		{
-			defaultLocations();
-			return;
-		}
+		WORLD = s[3];
 		
 		try
 		{
@@ -58,62 +54,90 @@ public class LocationArea
 	
 	public boolean update(Location one, Location two)
 	{
-		X1 = one.getX();
-		Y1 = one.getY();
-		Z1 = one.getZ();
-		
-		X2 = two.getX();
-		Y2 = two.getY();
-		Z2 = two.getZ();
-		
-		if(one.getWorld() != null && two.getWorld() != null && one.getWorld().equals(two.getWorld()))
+		if(one != null)
+		{
+			X1 = one.getX();
+			Y1 = one.getY();
+			Z1 = one.getZ();
+			Loc1 = locToStr(new Location(one.getWorld(), X2, Y2, Z2));
+		}
+		Bukkit.broadcastMessage(X1 +" " + Y1 + " " + Z1);
+		if(two != null)
+		{
+			X2 = two.getX();
+			Y2 = two.getY();
+			Z2 = two.getZ();
+			Loc2 = locToStr(new Location(two.getWorld(), X2, Y2, Z2));
+		}
+		Bukkit.broadcastMessage(X2 +" " + Y2 + " " + Z2);
+
+		if(one != null && two != null)
 		{
 			WORLD = one.getWorld().getUID().toString();
-			Loc1 = new Location(one.getWorld(), X1, Y1, Z1);
-			Loc2 = new Location(two.getWorld(), X2, Y2, Z2);
 			return true;
 		}
-		WORLD = "0000";
 		return false;
 	}
 	
 	public Location get1()
 	{
-		return Loc1;
+		return strToLoc(Loc1);
 	}
 	
 	public Location get2()
 	{
-		return Loc2;
+		return strToLoc(Loc1);
 	}
 	
 	public void set1(Location a)
 	{
-		update(a, Loc2);
+		update(a, strToLoc(Loc2));
 	}
 	
 	public void set2(Location b)
 	{
-		update(Loc1, b);
+		update(strToLoc(Loc1), b);
 	}
 	
 	public void defaultLocations()
 	{
-		Loc1 = new Location(null, 0, 0, 0);
-		Loc2 = new Location(null, 0, 0, 0);
-		update(Loc1, Loc2);
+		Loc1 = "0.0=+=0.0=+=0.0=+=" + Bukkit.getWorlds().get(0) + "=+=0.0=+=0.0=+=0.0";
+		Loc2 = "0.0=+=0.0=+=0.0=+=" + Bukkit.getWorlds().get(0) + "=+=0.0=+=0.0=+=0.0";
 	}
 	
-	public String saveString()
+	public String saveString(String loc1, String loc2)
+	{		
+		return loc1 + "=+=" + loc2;
+	}
+	
+	public static Location strToLoc(String str)
 	{
-		if(WORLD == null)
-			return null;
+		String[] s = str.split("=+=");
 		
-		return X1 + "=+=" + Y1 + "=+=" + Z1 + "=+=" + WORLD + "=+=" + X2 + "=+=" + Y2 + "=+=" + Z2 + "=+=" + WORLD;
+		if(s.length != 4)
+			return null;
+		double x, y, z;
+		try
+		{
+			x = Double.parseDouble(s[0]);
+			y = Double.parseDouble(s[1]);
+			z = Double.parseDouble(s[2]);
+			return new Location(Bukkit.getWorld(s[3]), x, y, z);
+		}
+		catch(NumberFormatException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public static String locToStr(Location loc)
+	{
+		return loc.getBlockX() + "=+=" + loc.getBlockY() + "=+=" + loc.getBlockZ() + loc.getWorld().getUID().toString();
 	}
 	
 	public String toString()
 	{
-		return "Pos1\nX:" + X1 + ", Y:" + Y1 + ", Z: " + Z1 + "\nPos2\nX: " + X2 + ", Y: " + Y2 + ", Z: " + Z2 + "\n In world: " + WORLD;
+		return "Pos1\nX:" + X1 + ", Y:" + Y1 + ", Z: " + Z1 + "\nPos2\nX: " + X2 + ", Y: " + Y2 + ", Z: " + Z2 + "\nIn world: " + WORLD;
 	}
 }

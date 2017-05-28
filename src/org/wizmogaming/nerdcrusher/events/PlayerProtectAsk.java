@@ -73,8 +73,6 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 				{
 					p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Removed your protection area");
 					p.sendMessage(ChatColor.YELLOW + "" + ChatColor.STRIKETHROUGH + locarea);
-					locarea.set1(null);
-					locarea.set2(null);
 					locarea = null;
 				}
 			}
@@ -100,7 +98,7 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 						{
 							if(c.hasPermission("wizmogaming.isadmin"))
 								ad.add(c);
-							pl.save(pl.Protection, new File(pl.getDataFolder().getAbsolutePath() + "/protectionask.txt"));
+							pl.save(pl.Protection, new File(pl.getDataFolder().getAbsolutePath() + "/protection.txt"));
 						}
 						notifyAdmins(ad, u);
 					}
@@ -156,7 +154,7 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 							Bukkit.dispatchCommand(sender, "/pos2 " + locarea.get2().getBlockX() + "," + locarea.get2().getBlockY() + "," + locarea.get2().getBlockZ());
 							Bukkit.dispatchCommand(sender, "/expand vert");
 							Bukkit.dispatchCommand(sender, "region define " + player.getName() + "SELECTION" + playloc.Protections + " " + player.getName());
-							pl.save(pl.Protection, new File(pl.getDataFolder().getAbsolutePath() + "/protectionask.txt"));
+							pl.save(pl.Protection, new File(pl.getDataFolder().getAbsolutePath() + "/protection.txt"));
 							sender.sendMessage(ChatColor.BOLD + "" + ChatColor.AQUA + "Created protection " + player.getName() + "SELECTION" + playloc.Protections + " " + player.getName());
 							pl.Protection.get(pos).Protections++;
 							pl.Protection.get(pos).set(null);
@@ -179,7 +177,7 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 						{
 							PlayerLocations playloc = pl.Protection.get(pos);
 							pl.Protection.remove(playloc);
-							pl.save(pl.Protection, new File(pl.getDataFolder().getAbsolutePath() + "/protectionask.txt"));
+							pl.save(pl.Protection, new File(pl.getDataFolder().getAbsolutePath() + "/protection.txt"));
 							sender.sendMessage(ChatColor.BOLD + "" + ChatColor.DARK_RED + "Did not create the protection for " + player.getName());
 							playloc.set(null);
 						}
@@ -303,13 +301,13 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 	
 	private int check(UUID a, int x)
 	{
-		if(a.equals(pl.Protection.get(x).getUUID()))
+		if(x < pl.Protection.size() && a.equals(pl.Protection.get(x).getUUID()))
 			return x;
 		else
 			for(int pos = 0; pos < pl.Protection.size(); x++)
 				if(a.equals(pl.Protection.get(pos)))
 					return pos;
 		pl.Protection.add(new PlayerLocations(pl.getServer().getPlayer(a)));
-		return pl.Protection.size();
+		return pl.Protection.size() - 1;
 	}
 }
