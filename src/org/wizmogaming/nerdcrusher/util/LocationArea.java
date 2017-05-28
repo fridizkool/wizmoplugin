@@ -18,12 +18,7 @@ public class LocationArea
 	
 	public LocationArea(Location one, Location two)
 	{
-<<<<<<< HEAD
 		defaultLocations();
-=======
-		Loc1 = new Location(null, 0, 0, 0);
-		Loc2 = new Location(null, 0, 0, 0);
->>>>>>> 89c4b5fcc9319379fb9206cd2f3b61352872d2f5
 		update(one, two);
 	}
 	
