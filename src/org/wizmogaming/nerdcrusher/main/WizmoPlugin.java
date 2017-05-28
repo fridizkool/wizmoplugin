@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -165,9 +166,9 @@ public class WizmoPlugin extends JavaPlugin
 		return p;
 	}
 	
-	public ArrayList<OfflinePlayer> getOfflinePlayers()
+	public LinkedList<OfflinePlayer> getOfflinePlayers()
 	{
-		ArrayList<OfflinePlayer> n = new ArrayList<OfflinePlayer>();
+		LinkedList<OfflinePlayer> n = new LinkedList<OfflinePlayer>();
 		for(Player a : getServer().getOnlinePlayers())
 			n.add(a);
 		for(OfflinePlayer a : getServer().getOfflinePlayers())

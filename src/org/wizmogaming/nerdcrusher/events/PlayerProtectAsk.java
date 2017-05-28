@@ -3,6 +3,7 @@ package org.wizmogaming.nerdcrusher.events;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -38,12 +39,7 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 	@EventHandler
 	public void onPlayerProtect(PlayerInteractEvent evt)
 	{
-		ArrayList<OfflinePlayer> a = pl.getOfflinePlayers();
-		ArrayList<UUID> need = new ArrayList<UUID>();
-		for(OfflinePlayer x : a)
-			if(x.getUniqueId() != null)
-				if(pl.ProtectionNeed.get(x.getUniqueId()) != null)
-					need.add(x.getUniqueId());
+		
 		if(evt.getItem() != null && evt.getItem().equals(pl.Protect))
 		{
 			Player p = evt.getPlayer();
@@ -124,7 +120,7 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 	@SuppressWarnings("deprecation")
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
 	{
-		ArrayList<OfflinePlayer> a = pl.getOfflinePlayers();
+		LinkedList<OfflinePlayer> a = pl.getOfflinePlayers();
 		ArrayList<UUID> need = new ArrayList<UUID>();
 		for(OfflinePlayer x : a)
 			if(x.getUniqueId() != null)
@@ -308,9 +304,11 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 		if(pl.ProtectedAmount.get(u) == null)
 			pl.ProtectedAmount.put(u, 0);
 		
+		//Start
 		TextComponent mes = new TextComponent(player.getName() + " needs a protection at:");
 		mes.setBold(true);
 		mes.setColor(ChatColor.DARK_PURPLE);
+		//Inspection
 		mes.setClickEvent(new ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/staffchat Inspecting " + player.getName() + " selection"));
 		TextComponent mes1 = new TextComponent("Teleport to corner 1\nWorld: " + lo[0].getWorld().getName() + "\nX: " + lo[0].getBlockX() + ", Y: " + lo[0].getBlockY() + ", Z: " + lo[0].getBlockZ());
 		mes1.setItalic(true);
