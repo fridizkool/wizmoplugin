@@ -10,12 +10,12 @@ public class LocSer
 {
 	public static String getString(Location loc)
 	{
-		return loc.getX() + ";" + loc.getY() + ";" + loc.getZ() + ";" + loc.getWorld().getUID();
+		return loc.getX() + ">" + loc.getY() + ">" + loc.getZ() + ">" + loc.getWorld().getUID();
 	}
 	
 	public static Location getLocation(String s)
 	{
-		String [] parts = s.split(";"); //If you changed the semicolon you must change it here too
+		String [] parts = s.split(">"); //If you changed the semicolon you must change it here too
 		double x = Double.parseDouble(parts[0]);
 		double y = Double.parseDouble(parts[1]);
         double z = Double.parseDouble(parts[2]);
