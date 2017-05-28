@@ -33,7 +33,7 @@ public class LocationArea
 		}
 		
 		//Check if worlds are neither 0000, null, or if they aren't the same
-		if(!s[3].equals(s[7]) || s[3].equals("0000") || s[7].equals("0000") || s[3].equals("null") || s[7].equals("null"))
+		if(!s[3].equals(s[7]) || s[3].equals("0000") || s[7].equals("0000") || s[3] == null || s[7] == null)
 		{
 			defaultLocations();
 			return;
@@ -53,7 +53,6 @@ public class LocationArea
 		{
 			e.printStackTrace();
 			defaultLocations();
-			return;
 		}
 	}
 	
@@ -78,14 +77,24 @@ public class LocationArea
 		return false;
 	}
 	
-	public Location getOne()
+	public Location get1()
 	{
 		return Loc1;
 	}
 	
-	public Location getTwo()
+	public Location get2()
 	{
 		return Loc2;
+	}
+	
+	public void set1(Location a)
+	{
+		update(a, Loc2);
+	}
+	
+	public void set2(Location b)
+	{
+		update(Loc1, b);
 	}
 	
 	public void defaultLocations()
@@ -95,11 +104,16 @@ public class LocationArea
 		update(Loc1, Loc2);
 	}
 	
-	public String toString()
+	public String saveString()
 	{
 		if(WORLD == null)
 			return null;
 		
 		return X1 + "=+=" + Y1 + "=+=" + Z1 + "=+=" + WORLD + "=+=" + X2 + "=+=" + Y2 + "=+=" + Z2 + "=+=" + WORLD;
+	}
+	
+	public String toString()
+	{
+		return "Pos1\nX:" + X1 + ", Y:" + Y1 + ", Z: " + Z1 + "\nPos2\nX: " + X2 + ", Y: " + Y2 + ", Z: " + Z2 + "\n In world: " + WORLD;
 	}
 }

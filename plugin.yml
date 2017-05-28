@@ -7,8 +7,8 @@ commands:
         description: Set a protection so an Admin can inspect it and protect it
         usage: /protect [help]
         permission: wizmogaming.protect
-    IsAdmin:
-        description: IsAdmin
+    isadmin:
+        description: See if you are an admin
         usage: /isadmin
         permission: wizmogaming.isadmin
     trusted:
@@ -27,10 +27,6 @@ commands:
         description: In case of emergency
         usage: /wizmodeletefile <protectionask/protectionamount/protectionplayers>
         permission: wizmogaming.wizmodeletefile
-    protectedamount:
-        description: Fixer for selection amounts
-        usage: /protectedamount <set/get> <player> <(if using set)integer>
-        permission: wizmogaming.protectedamount
         
 permisions:
     wizmogaming.protect:

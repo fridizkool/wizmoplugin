@@ -2,7 +2,6 @@ package org.wizmogaming.nerdcrusher.events;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.UUID;
 
@@ -19,7 +18,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.wizmogaming.nerdcrusher.main.WizmoPlugin;
-import org.wizmogaming.nerdcrusher.util.LocSer;
+import org.wizmogaming.nerdcrusher.util.LocationArea;
+import org.wizmogaming.nerdcrusher.util.PlayerLocations;
 
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -45,55 +45,51 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 			Player p = evt.getPlayer();
 			UUID u = p.getUniqueId();	//Easy coverage
 			Location lo = null;
-			String[] str = null;
+			PlayerLocations playloc;
+			LocationArea locarea;
+			int pos = check(u, 0);
 			
-			if(pl.ProtectionNeed.get(u) == null)	//Set protection points
-				 str = new String[]{null, null};
-			else
-				str = new String[]{pl.ProtectionNeed.get(u)[0], pl.ProtectionNeed.get(u)[1]};
+			pl.Protection.get(pos).add(new LocationArea(null, null));
+			playloc = pl.Protection.get(pos);
+			locarea = playloc.get();
 			
 			if(evt.getAction() == Action.LEFT_CLICK_BLOCK && !p.isSneaking())	//Left click to set first position
 			{
 				lo = evt.getClickedBlock().getLocation();
 				p.sendMessage(ChatColor.YELLOW + "Protection spot 1 in " + lo.getWorld().getName() + "\nX: " + lo.getX() + ", Y: " + lo.getY() + ", Z: " + lo.getZ());
-				str[0] = LocSer.getString(lo);
+				locarea.set1(lo);
 			}
 			else if(evt.getAction() == Action.RIGHT_CLICK_BLOCK && !p.isSneaking())	//Right click to set second position
 			{
 				lo = evt.getClickedBlock().getLocation();
 				p.sendMessage(ChatColor.YELLOW + "Protection spot 2 in " + lo.getWorld().getName() + "\nX: " + lo.getX() + ", Y: " + lo.getY() + ", Z: " + lo.getZ());
-				str[1] = LocSer.getString(lo);
+				locarea.set2(lo);
 			}
 			else if((evt.getAction() == Action.RIGHT_CLICK_BLOCK && p.isSneaking()) || (evt.getAction() == Action.RIGHT_CLICK_AIR && p.isSneaking())) //Sneak right click to clear
 			{
-				if(str[0] == null || str[1] == null)
+				if(locarea.get1() == null || locarea.get2() == null)
 					p.sendMessage(ChatColor.RED + "" + ChatColor.ITALIC + "Could not remove your protection ask because you have not completed your protection area");
 				else
 				{
 					p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Removed your protection area");
-					p.sendMessage(ChatColor.YELLOW + "" + ChatColor.STRIKETHROUGH + "Protection spot 1 in " + LocSer.getLocation(str[0]).getWorld().getName() + "\nX: "
-							+ LocSer.getLocation(str[0]).getX() + ", Y: " + LocSer.getLocation(str[0]).getY() + ", Z: "
-								+ LocSer.getLocation(str[0]).getZ());
-					p.sendMessage(ChatColor.YELLOW + "" + ChatColor.STRIKETHROUGH + "Protection spot 2 in " + LocSer.getLocation(str[1]).getWorld().getName() + "\nX: "
-							+ LocSer.getLocation(str[1]).getX() + ", Y: " + LocSer.getLocation(str[1]).getY() + ", Z: "
-								+ LocSer.getLocation(str[1]).getZ());
-					str[0] = null;
-					str[1] = null;
-					str = null;
+					p.sendMessage(ChatColor.YELLOW + "" + ChatColor.STRIKETHROUGH + locarea);
+					locarea.set1(null);
+					locarea.set2(null);
+					locarea = null;
 				}
 			}
 			else if((evt.getAction() == Action.LEFT_CLICK_BLOCK && p.isSneaking()) || (evt.getAction() == Action.LEFT_CLICK_AIR && p.isSneaking())) //Sneak left click to try to send to admins
 			{
-				if(str[0] == null && str[1] != null)
+				if(locarea.get1() == null && locarea.get2() != null)
 					p.sendMessage(ChatColor.RED + "" + ChatColor.ITALIC + "Cannot send your protection ask to admin because you have not completed because protection 1 has not been set!");
-				else if(str[1] == null && str[0] != null)
+				else if(locarea.get2() == null && locarea.get1() != null)
 					p.sendMessage(ChatColor.RED + "" + ChatColor.ITALIC + "Cannot send your protection ask to admin because you have not completed because protection 2 has not been set!");
-				else if(str[0] == null && str[1] == null)
+				else if(locarea.get1() == null && locarea.get2() == null)
 					p.sendMessage(ChatColor.RED + "" + ChatColor.ITALIC + "Cannot send your protection ask to admin because you have not completed because protection 1 and 2 have not been set!");
 				else
 				{
-					int length = Math.abs(LocSer.getLocation(str[0]).getBlockX() - LocSer.getLocation(str[1]).getBlockX());
-					int width = Math.abs(LocSer.getLocation(str[0]).getBlockZ() - LocSer.getLocation(str[1]).getBlockZ());
+					int length = Math.abs(locarea.get1().getBlockX() - locarea.get2().getBlockX());
+					int width = Math.abs(locarea.get1().getBlockZ() - locarea.get2().getBlockZ());
 					if(length * width < pl.getConfig().getInt("MaxProtectionArea"))
 					{
 						p.sendMessage(ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Protection ask sent to admins");
@@ -104,7 +100,7 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 						{
 							if(c.hasPermission("wizmogaming.isadmin"))
 								ad.add(c);
-							pl.save(pl.ProtectionNeed, new File(pl.getDataFolder().getAbsolutePath() + "/protectionask.txt"));
+							pl.save(pl.Protection, new File(pl.getDataFolder().getAbsolutePath() + "/protectionask.txt"));
 						}
 						notifyAdmins(ad, u);
 					}
@@ -112,21 +108,14 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 						p.sendMessage(ChatColor.RED + "" + ChatColor.ITALIC + "To large of an area selected");
 				}
 			}
-			
-			pl.ProtectionNeed.put(u, str);	
+			pos = check(u, pos);
+			pl.Protection.get(pos).set(locarea);
 		}
 	}
 	
 	@SuppressWarnings("deprecation")
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
 	{
-		LinkedList<OfflinePlayer> a = pl.getOfflinePlayers();
-		ArrayList<UUID> need = new ArrayList<UUID>();
-		for(OfflinePlayer x : a)
-			if(x.getUniqueId() != null)
-				if(pl.ProtectionNeed.get(x.getUniqueId()) != null)
-					need.add(x.getUniqueId());
-		
 		if(cmd.getName().equalsIgnoreCase("protect"))
 		{
 			if(sender instanceof Player)
@@ -157,20 +146,20 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 					if(Bukkit.getOfflinePlayer(args[1]) != null)
 					{
 						OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
-						if(pl.ProtectionNeed.get(player.getUniqueId()) != null)
+						UUID u = player.getUniqueId();
+						int pos = check(u, 0);
+						if(pl.Protection.get(pos).get() != null)
 						{
-							Location[] lo = new Location[]{LocSer.getLocation(pl.ProtectionNeed.get(player.getUniqueId())[0]), LocSer.getLocation(pl.ProtectionNeed.get(player.getUniqueId())[1])};
-							pl.ProtectionNeed.remove(player.getUniqueId());
-							if(pl.ProtectedAmount.get(player.getUniqueId()) == null)
-								pl.ProtectedAmount.put(player.getUniqueId(), 0);
-							pl.ProtectedAmount.put(player.getUniqueId(), pl.ProtectedAmount.get(player.getUniqueId()) + 1);
-							Bukkit.dispatchCommand(sender, "/pos1 " + lo[0].getBlockX() + "," + lo[0].getBlockY() + "," + lo[0].getBlockZ());
-							Bukkit.dispatchCommand(sender, "/pos2 " + lo[1].getBlockX() + "," + lo[1].getBlockY() + "," + lo[1].getBlockZ());
+							PlayerLocations playloc = pl.Protection.get(pos);
+							LocationArea locarea = playloc.get();
+							Bukkit.dispatchCommand(sender, "/pos1 " + locarea.get1().getBlockX() + "," + locarea.get1().getBlockY() + "," + locarea.get1().getBlockZ());
+							Bukkit.dispatchCommand(sender, "/pos2 " + locarea.get2().getBlockX() + "," + locarea.get2().getBlockY() + "," + locarea.get2().getBlockZ());
 							Bukkit.dispatchCommand(sender, "/expand vert");
-							Bukkit.dispatchCommand(sender, "region define " + player.getName() + "SELECTION" + pl.ProtectedAmount.get(player.getUniqueId()) + " " + player.getName());
-							pl.save(pl.ProtectionNeed, new File(pl.getDataFolder().getAbsolutePath() + "/protectionask.txt"));
-							pl.save(pl.ProtectedAmount, new File(pl.getDataFolder().getAbsolutePath() + "/protectedamount.txt"));
-							sender.sendMessage(ChatColor.BOLD + "" + ChatColor.AQUA + "Created protection " + player.getName() + "SELECTION" + pl.ProtectedAmount.get(player.getUniqueId()) + " " + player.getName());
+							Bukkit.dispatchCommand(sender, "region define " + player.getName() + "SELECTION" + playloc.Protections + " " + player.getName());
+							pl.save(pl.Protection, new File(pl.getDataFolder().getAbsolutePath() + "/protectionask.txt"));
+							sender.sendMessage(ChatColor.BOLD + "" + ChatColor.AQUA + "Created protection " + player.getName() + "SELECTION" + playloc.Protections + " " + player.getName());
+							pl.Protection.get(pos).Protections++;
+							pl.Protection.get(pos).set(null);
 						}
 						else
 							sender.sendMessage(ChatColor.BOLD + "" + ChatColor.AQUA + "Protection was already created!");
@@ -184,12 +173,15 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 					if(Bukkit.getOfflinePlayer(args[1]) != null)
 					{
 						OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
-						if(pl.ProtectionNeed.get(player.getUniqueId()) != null)
+						UUID u = player.getUniqueId();
+						int pos = check(u, 0);
+						if(pl.Protection.get(pos).get() != null)
 						{
-							pl.ProtectionNeed.remove(player.getUniqueId());
-							pl.save(pl.ProtectionNeed, new File(pl.getDataFolder().getAbsolutePath() + "/protectionask.txt"));
-							pl.save(pl.ProtectedAmount, new File(pl.getDataFolder().getAbsolutePath() + "/protectedamount.txt"));
+							PlayerLocations playloc = pl.Protection.get(pos);
+							pl.Protection.remove(playloc);
+							pl.save(pl.Protection, new File(pl.getDataFolder().getAbsolutePath() + "/protectionask.txt"));
 							sender.sendMessage(ChatColor.BOLD + "" + ChatColor.DARK_RED + "Did not create the protection for " + player.getName());
+							playloc.set(null);
 						}
 						else
 							sender.sendMessage(ChatColor.BOLD + "" + ChatColor.AQUA + "Protection was already created!");
@@ -206,7 +198,7 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 			{
 				if(sender instanceof Player)
 				{
-					if(Bukkit.getOfflinePlayer(args[0]) != null && pl.ProtectionNeed.get(Bukkit.getOfflinePlayer(args[0]).getUniqueId()) != null)
+					if(Bukkit.getOfflinePlayer(args[0]) != null && pl.Protection.get(check(Bukkit.getOfflinePlayer(args[0]).getUniqueId(), 0)).get() != null)
 					{
 						ArrayList<Player> ad = new ArrayList<Player>();
 						ad.add((Player)sender);
@@ -221,24 +213,29 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 			}
 			else
 			{
-				sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "There are " + need.size() + " players that still need a protection:");
+				LinkedList<PlayerLocations> need = new LinkedList<PlayerLocations>();
+				for(PlayerLocations p : pl.Protection)
+					if(p.get() != null)
+						need.add(p);
+				sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "There are " + need.size() + " player(s) that still need(s) a protection:");
 				if(sender instanceof Player)
 				{
 					TextComponent mes = new TextComponent();
-					for(UUID x : need)
-						if(pl.ProtectionNeed.get(x) != null)
+					for(PlayerLocations x : need)
+						if(x.get() != null)
 						{
 							mes = new TextComponent();
 							mes.setColor(ChatColor.GREEN);
 							mes.setItalic(true);
-							mes.setText(Bukkit.getOfflinePlayer(x).getName());
-							mes.setClickEvent(new ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/protectlist " + Bukkit.getOfflinePlayer(x).getName()));
+							mes.setText(x.getPlayer().getName());
+							mes.setClickEvent(new ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/protectlist " + x.getPlayer().getName()));
 							((Player)sender).spigot().sendMessage(mes);
 						}
 				}
 				else
-					for(UUID x : need)
-						sender.sendMessage(ChatColor.GREEN + Bukkit.getOfflinePlayer(x).getName());
+					for(PlayerLocations x : need)
+						if(x.get() != null)
+							sender.sendMessage(ChatColor.GREEN + x.getPlayer().getName());
 				return true;
 			}
 		}
@@ -246,63 +243,25 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 		{
 			if(args.length == 1)
 			{
-				if(args[0].equalsIgnoreCase("protectionask"))
+				if(args[0].equalsIgnoreCase("protection"))
 				{
-					pl.ProtectionNeed = new HashMap<UUID, String[]>();
-					pl.save(pl.ProtectionNeed, new File(pl.getDataFolder().getAbsolutePath() + "/protectionask.txt"));
-					return true;
-				}
-				else if(args[0].equalsIgnoreCase("ProtectedAmount"))
-				{
-					pl.ProtectedAmount = new HashMap<UUID, Integer>();
-					pl.save(pl.ProtectedAmount, new File(pl.getDataFolder().getAbsolutePath() + "/protectedamount.txt"));
+					pl.Protection = new LinkedList<PlayerLocations>();
+					pl.save(pl.Protection, new File(pl.getDataFolder().getAbsolutePath() + "/protection.txt"));
 					return true;
 				}
 			}
 		}
-		if(cmd.getName().equalsIgnoreCase("protectedamount"))
-		{
-			if(args.length > 0)
-			{
-				if(args[0].equalsIgnoreCase("set"))
-				{
-					if(args.length == 3)
-					{
-						if(Bukkit.getOfflinePlayer(args[1]) != null)
-						{
-							if(args[2].matches("^[+-]?\\d+$"))
-							{
-								pl.ProtectedAmount.put(Bukkit.getOfflinePlayer(args[1]).getUniqueId(), Integer.getInteger(args[2]));
-								return true;
-							}
-						}
-						else
-							sender.sendMessage(ChatColor.RED + "Does not exist");
-					}
-				}
-				else if(args[1].equalsIgnoreCase("get"))
-				{
-					if(args.length == 2)
-					{
-						if(Bukkit.getOfflinePlayer(args[1]) != null)
-						{
-							sender.sendMessage(ChatColor.GREEN + "" + pl.ProtectedAmount.get(Bukkit.getOfflinePlayer(args[1])));
-							return true;
-						}
-					}
-				}
-			}
-		}
+		
 		return false;
 	}
 	
 	@SuppressWarnings({ "deprecation" })
 	public void notifyAdmins(ArrayList<Player> ad, UUID u)
 	{
-		Location[] lo = new Location[]{LocSer.getLocation(pl.ProtectionNeed.get(u)[0]), LocSer.getLocation(pl.ProtectionNeed.get(u)[1])};
 		OfflinePlayer player = Bukkit.getOfflinePlayer(u);
-		if(pl.ProtectedAmount.get(u) == null)
-			pl.ProtectedAmount.put(u, 0);
+		int pos = check(u, 0);
+		PlayerLocations playloc = pl.Protection.get(pos);
+		LocationArea locarea = playloc.get();
 		
 		//Start
 		TextComponent mes = new TextComponent(player.getName() + " needs a protection at:");
@@ -310,14 +269,14 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 		mes.setColor(ChatColor.DARK_PURPLE);
 		//Inspection
 		mes.setClickEvent(new ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/staffchat Inspecting " + player.getName() + " selection"));
-		TextComponent mes1 = new TextComponent("Teleport to corner 1\nWorld: " + lo[0].getWorld().getName() + "\nX: " + lo[0].getBlockX() + ", Y: " + lo[0].getBlockY() + ", Z: " + lo[0].getBlockZ());
+		TextComponent mes1 = new TextComponent("Teleport to corner 1\nWorld: " + locarea.get1().getWorld().getName() + "\nX: " + locarea.get1().getBlockX() + ", Y: " + locarea.get1().getBlockY() + ", Z: " + locarea.get1().getBlockZ());
 		mes1.setItalic(true);
 		mes1.setColor(ChatColor.BLUE);
-		mes1.setClickEvent(new ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/tppos " + lo[0].getBlockX() + " " + lo[0].getBlockY() + " " + lo[0].getBlockZ()));
-		TextComponent mes2 = new TextComponent("Teleport to corner 2\nWorld: " + lo[1].getWorld().getName() + "\nX: " + lo[1].getBlockX() + ", Y: " + lo[1].getBlockY() + ", Z: " + lo[1].getBlockZ());
+		mes1.setClickEvent(new ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/tppos " + locarea.get1().getBlockX() + " " + locarea.get1().getBlockY() + " " + locarea.get1().getBlockZ()));
+		TextComponent mes2 = new TextComponent("Teleport to corner 2\nWorld: " + locarea.get2().getWorld().getName() + "\nX: " + locarea.get2().getBlockX() + ", Y: " + locarea.get2().getBlockY() + ", Z: " + locarea.get2().getBlockZ());
 		mes2.setItalic(true);
 		mes2.setColor(ChatColor.RED);
-		mes2.setClickEvent(new ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/tppos " + lo[1].getBlockX() + " " + lo[1].getBlockY() + " " + lo[1].getBlockZ()));
+		mes2.setClickEvent(new ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/tppos " + locarea.get2().getBlockX() + " " + locarea.get2().getBlockY() + " " + locarea.get2().getBlockZ()));
 		TextComponent mes3 = new TextComponent("Accept this protection");
 		mes3.setBold(true);
 		mes3.setColor(ChatColor.AQUA);
@@ -332,13 +291,25 @@ public class PlayerProtectAsk implements Listener, CommandExecutor
 		
 		for(Player a : ad)
 		{
-			a.sendBlockChange(lo[0], Material.GLOWSTONE, (byte)0);
-			a.sendBlockChange(lo[1], Material.REDSTONE_LAMP_ON, (byte)0);
+			a.sendBlockChange(locarea.get1(), Material.GLOWSTONE, (byte)0);
+			a.sendBlockChange(locarea.get2(), Material.REDSTONE_LAMP_ON, (byte)0);
 			a.spigot().sendMessage(mes);
 			a.spigot().sendMessage(mes1);
 			a.spigot().sendMessage(mes2);
 			a.spigot().sendMessage(mes3);
 			a.spigot().sendMessage(mes4);
 		}
+	}
+	
+	private int check(UUID a, int x)
+	{
+		if(a.equals(pl.Protection.get(x).getUUID()))
+			return x;
+		else
+			for(int pos = 0; pos < pl.Protection.size(); x++)
+				if(a.equals(pl.Protection.get(pos)))
+					return pos;
+		pl.Protection.add(new PlayerLocations(pl.getServer().getPlayer(a)));
+		return pl.Protection.size();
 	}
 }

@@ -8,10 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -26,17 +23,15 @@ import org.wizmogaming.nerdcrusher.commands.IsAdmin;
 import org.wizmogaming.nerdcrusher.commands.Trusted;
 import org.wizmogaming.nerdcrusher.events.PlayerJoin;
 import org.wizmogaming.nerdcrusher.events.PlayerProtectAsk;
+import org.wizmogaming.nerdcrusher.util.PlayerLocations;
 
 import net.md_5.bungee.api.ChatColor;
 
 public class WizmoPlugin extends JavaPlugin
 {
 	public ItemStack Protect;
-	public HashMap<UUID, Integer> ProtectedAmount;
-	public HashMap<UUID, String[]> ProtectionNeed;
-	public ArrayList<String[]> Protection = new ArrayList<String[]>();
+	public LinkedList<PlayerLocations> Protection = new LinkedList<PlayerLocations>();
 	
-	@SuppressWarnings("unchecked")
 	public void onEnable()
 	{
 		Protect = new ItemStack(Material.WOOD_SWORD, 1);
@@ -44,32 +39,26 @@ public class WizmoPlugin extends JavaPlugin
 		im.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Protect");
 		Protect.setItemMeta(im);
 		
-		if(open(new File(getDataFolder().getAbsolutePath() + "/protectedamount.txt")) != null)
-			ProtectedAmount = (HashMap<UUID, Integer>)open(new File(getDataFolder().getAbsolutePath() + "/protectedamount.txt"));
-		else
-			ProtectedAmount = new HashMap<UUID, Integer>();
 		registerCommands();
 		registerEvents();
 	}
 	
 	public void onDisable()
 	{
-		save(ProtectionNeed, new File(getDataFolder().getAbsolutePath() + "/protectionask.txt"));
-		save(ProtectedAmount, new File(getDataFolder().getAbsolutePath() + "/protectedamount.txt"));
+		save(Protection, new File(getDataFolder().getAbsolutePath() + "/protection.txt"));
 	}
 	
 	@SuppressWarnings("unchecked")
 	public void registerCommands()
 	{
-		if(open(new File(getDataFolder().getAbsolutePath() + "/protectionask.txt")) != null)
-			ProtectionNeed = (HashMap<UUID, String[]>) open(new File(getDataFolder().getAbsolutePath() + "/protectionask.txt"));
+		if(open(new File(getDataFolder().getAbsolutePath() + "/protection.txt")) != null)
+			Protection = (LinkedList<PlayerLocations>) open(new File(getDataFolder().getAbsolutePath() + "/protection.txt"));
 		else
-			ProtectionNeed = new HashMap<UUID, String[]>();
+			Protection = new LinkedList<PlayerLocations>();
 		this.getCommand("protect").setExecutor(new PlayerProtectAsk(this));
 		this.getCommand("removeask").setExecutor(new PlayerProtectAsk(this));
 		this.getCommand("protectlist").setExecutor(new PlayerProtectAsk(this));
 		this.getCommand("wizmodeletefile").setExecutor(new PlayerProtectAsk(this));
-		this.getCommand("protectedamount").setExecutor(new PlayerProtectAsk(this));
 		this.getCommand("isadmin").setExecutor(new IsAdmin());
 		this.getCommand("trusted").setExecutor(new Trusted());
 	}
